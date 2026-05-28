@@ -1,0 +1,7 @@
+# Cloudflare Pages redirects/rewrites.
+# Keep /invite/<token> on index.html (200 = rewrite, URL preserved) so the
+# page's JS can read the token from the path and open the app.
+/invite/*    /index.html     200
+
+# Clean URL for the policy.
+/privacy     /privacy.html   200

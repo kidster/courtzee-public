@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Courtzee — Track the Court. Zee every win.</title>
+  <meta name="description" content="Courtzee is a tournament manager for racquet sports — padel, tennis, pickleball, racquetball, squash and more. Build brackets, run matches, and share results." />
+  <meta property="og:title" content="Courtzee — Track the Court. Zee every win." />
+  <meta property="og:description" content="Tournament manager for racquet sports. Build brackets, run matches, share results." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://courtzee.app/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/"><span class="dot"></span>Courtzee</a>
+    <nav class="nav">
+      <a href="#features">Features</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Invite routing panel: shown only when an invite token is present. -->
+    <section id="invite" class="invite-panel hidden">
+      <h2>You're invited to a tournament</h2>
+      <p>Open the invite in the Courtzee app to join.</p>
+      <button id="open-app" class="btn-primary" type="button">Open in Courtzee</button>
+      <div class="invite-fallback">
+        Don't have the app yet? Install it, then tap the link again.
+        <div class="stores" style="margin-top:14px;">
+          <a class="store-badge" data-store="android" href="#">
+            <span class="label"><small>GET IT ON</small>Google Play</span>
+          </a>
+          <a class="store-badge" data-store="ios" href="#" aria-disabled="true">
+            <span class="label"><small>COMING SOON</small>App Store</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Marketing landing: shown when there is no invite token. -->
+    <section id="landing">
+      <div class="hero">
+        <h1>Track the Court.<br />Zee every win.</h1>
+        <p class="lede">
+          Courtzee runs your racquet-sport tournaments end to end — build
+          brackets, assign courts, record scores, and share live results with
+          everyone playing.
+        </p>
+        <div class="stores">
+          <!-- PLACEHOLDER: swap href for the live Play Store listing once published. -->
+          <a class="store-badge" data-store="android" href="#">
+            <span class="label"><small>GET IT ON</small>Google Play</span>
+          </a>
+          <!-- PLACEHOLDER: iOS app not yet released. -->
+          <a class="store-badge" data-store="ios" href="#" aria-disabled="true">
+            <span class="label"><small>COMING SOON</small>App Store</span>
+          </a>
+        </div>
+        <div class="sports">
+          <span>Padel</span>·<span>Tennis</span>·<span>Pickleball</span>·<span>Racquetball</span>·<span>Squash</span>
+        </div>
+      </div>
+
+      <section id="features" class="features">
+        <div class="card">
+          <h3>Every format</h3>
+          <p>Single &amp; double elimination, round robin, ladder, and king of
+            the court — singles or doubles.</p>
+        </div>
+        <div class="card">
+          <h3>Share &amp; collaborate</h3>
+          <p>Invite players and co-organizers with a link. Everyone sees the
+            same live bracket and standings.</p>
+        </div>
+        <div class="card">
+          <h3>Players &amp; stats</h3>
+          <p>Keep a roster, add guests as placeholders, and track lifetime
+            wins, losses, and win rate.</p>
+        </div>
+        <div class="card">
+          <h3>Built for the cloud</h3>
+          <p>Your tournaments sync across devices and stay safe if you switch
+            phones.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>© <span id="year"></span> Courtzee · Track the Court. Zee every win.</div>
+    <div style="margin-top:8px;">
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="mailto:support@courtzee.app">Support</a>
+    </div>
+  </footer>
+
+  <script>
+    // ---------------------------------------------------------------------
+    // Config — update these in one place.
+    // ---------------------------------------------------------------------
+    var CONFIG = {
+      androidPackage: "com.courtzee.app",
+      // PLACEHOLDER store links. Replace once the listings are live.
+      playStoreUrl: "https://play.google.com/store/apps/details?id=com.courtzee.app",
+      appStoreUrl: "#", // PLACEHOLDER: no iOS listing yet.
+      inviteScheme: "courtzee", // custom scheme registered by the Android app
+      inviteHost: "invite", // courtzee://invite/<token>
+    };
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Wire store badges from config.
+    document.querySelectorAll('.store-badge[data-store="android"]').forEach(function (a) {
+      a.href = CONFIG.playStoreUrl;
+    });
+    document.querySelectorAll('.store-badge[data-store="ios"]').forEach(function (a) {
+      if (CONFIG.appStoreUrl && CONFIG.appStoreUrl !== "#") {
+        a.href = CONFIG.appStoreUrl;
+        a.removeAttribute("aria-disabled");
+        a.querySelector("small").textContent = "DOWNLOAD ON THE";
+      }
+    });
+
+    // ---------------------------------------------------------------------
+    // Invite routing.
+    // Accepts both:  /invite/<token>   and   /?invite=<token>
+    // Opens the app via the custom scheme; falls back to the store if the
+    // app does not handle the link within a short window.
+    // ---------------------------------------------------------------------
+    function readToken() {
+      var qp = new URLSearchParams(window.location.search).get("invite");
+      if (qp) return qp.trim();
+      var m = window.location.pathname.match(/^\/invite\/([^\/?#]+)/);
+      return m ? decodeURIComponent(m[1]) : null;
+    }
+
+    function appLink(token) {
+      return CONFIG.inviteScheme + "://" + CONFIG.inviteHost + "/" + encodeURIComponent(token);
+    }
+
+    var token = readToken();
+    if (token) {
+      document.getElementById("landing").classList.add("hidden");
+      document.getElementById("invite").classList.remove("hidden");
+
+      var target = appLink(token);
+      var openBtn = document.getElementById("open-app");
+
+      function launch() {
+        var fellBack = false;
+        // If the app opens, the page is backgrounded and the timer is paused;
+        // if nothing handles the scheme, we send the user to the store.
+        var t = setTimeout(function () {
+          if (!fellBack && CONFIG.playStoreUrl && CONFIG.playStoreUrl !== "#") {
+            window.location.href = CONFIG.playStoreUrl;
+          }
+        }, 1500);
+        window.addEventListener("pagehide", function () {
+          fellBack = true;
+          clearTimeout(t);
+        });
+        window.location.href = target;
+      }
+
+      openBtn.addEventListener("click", launch);
+      // Auto-attempt once on load (most expected path: tapped from an email).
+      launch();
+    }
+  </script>
+</body>
+</html>
